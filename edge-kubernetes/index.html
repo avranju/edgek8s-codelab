@@ -25,10 +25,16 @@
                   feedback-link="https://github.com/avranju/iotedge-k8s/issues">
     
       <google-codelab-step label="Introduction" duration="0">
-        <p>Azure IoT Edge now features integration with the Kubernetes orchestration engine. The primary purpose of this integration at this time is to achieve high availability. If you&#39;d like to read a document that goes into some detail of how this implementation works, you&#39;ll find it <a href="https://microsoft-my.sharepoint.com/:w:/p/rajave/EVTttp24fZJMv206fqHybisBZ-LKWLlYwqi1VAfp5H8QQQ?e=CdkZ9e" target="_blank">here</a> (please email <a href="mailto:rajave@microsoft.com" target="_blank"><strong>rajave@microsoft.com</strong></a><strong> </strong>in case you don&#39;t have access).</p>
+        <p>Azure IoT Edge now features integration with the Kubernetes orchestration engine. The primary purpose of this integration at this time is to achieve high availability.</p>
 <p>This document walks you through a test drive of this integration.</p>
-<h2><strong>What you will need</strong></h2>
-<h3><strong>Access to a Kubernetes cluster</strong></h3>
+<h2><strong>Architecture</strong></h2>
+<p><img style="max-width: 624.00px" src="img/5208836a2925f78d.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="What you will need" duration="0">
+        <h3><strong>Access to a Kubernetes cluster</strong></h3>
 <p>If you don&#39;t have a cluster handy, you can easily create one for yourself using the <a href="https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough" target="_blank">Azure Kubernetes Service</a>.</p>
 <h3><strong>Install Helm</strong></h3>
 <p>Install the Helm CLI on your PC and Tiller on your cluster. The <a href="https://docs.helm.sh/using_helm/#quickstart" target="_blank">Helm quickstart</a> has all the information you need to get things going.</p>
@@ -96,7 +102,7 @@ EOF</code></pre>
   --name edgy \
   --set &#34;deviceConnectionString=&lt;DEVICE CONNECTION STRING HERE&gt;&#34; \
   edgek8s/edge-kubernetes</pre>
-<aside class="warning"><p><strong>Important</strong>: Note that this deploys <strong>iotedged</strong> in &#34;QuickStart&#34; mode which means that <strong>iotedged</strong> will use a self-signed device CA cert for generating server and identity certificates. This device CA cert expires after 90 days.</p>
+<aside class="warning"><p><strong>Important</strong>: Note that this deploys <strong>iotedged</strong> in &#34;QuickStart&#34; mode which means that <strong>iotedged</strong> will use a self-signed device CA cert for generating server and identity certificates. This device CA cert expires after 30 days.</p>
 <p>Also, this will cause <strong>iotedged</strong> to use the container file system to store the certificate files and the master encryption key. This will not work very well in case the <strong>iotedged</strong> pod gets re-created by Kubernetes as it will end up generating brand new certificates and encryption keys thereby disabling all existing modules. Please see the section titled &#34;<em>Persistent storage for iotedged</em>&#34; to learn how this can be dealt with.</p>
 </aside>
 <p>At this point your cluster is ready to receive Edge deployments.</p>
@@ -105,11 +111,7 @@ EOF</code></pre>
       </google-codelab-step>
     
       <google-codelab-step label="Deploy your Edge modules" duration="0">
-        <p>You can deploy your Edge modules in Azure IoT Hub as usual except for the following important caveat:</p>
-<aside class="special"><p>Use the following container image for the Edge Agent module:</p>
-</aside>
-<pre>azureiotedge/azureiotedge-agent:0.1.0-alpha</pre>
-<p>A significant part of the Kubernetes integration code lives in the custom Edge Agent module image shown above. If you use the Edge Agent image that one normally uses (from the <em>mcr.microsoft.com</em> registry) then it won&#39;t work.</p>
+        <p>You can deploy your Edge modules in Azure IoT Hub as usual except for the following important caveat -- the edge Agent image will not be updated from the deployment. A significant part of the Kubernetes integration code lives in the custom Edge Agent module image installed by Helm. We have disabled Edge Agent&#39;s ability to update itself in this private preview release.</p>
 <p>All of the Edge specific resources are deployed in Kubernetes in a namespace called <code>microsoft-azure-devices-edge</code>. You can keep an eye on the pods as they get deployed by running:</p>
 <pre>kubectl get pods -n microsoft-azure-devices-edge -w</pre>
 
@@ -146,23 +148,13 @@ kubectl delete configmap -n kube-system edgy.v1</pre>
       </google-codelab-step>
     
       <google-codelab-step label="Resources" duration="0">
-        <h2><strong>Source</strong></h2>
-<p>The source code for the Kubernetes integration work lives here:</p>
-<aside class="special"><p><a href="https://github.com/avranju/iotedge-k8s/tree/edgelet-k8s" target="_blank">https://github.com/avranju/iotedge-k8s/tree/edgelet-k8s</a></p>
-</aside>
-<p>You&#39;ll find the Helm chart definition <a href="https://github.com/avranju/iotedge-k8s/tree/edgelet-k8s/edgelet/build/charts/edge-kubernetes" target="_blank">here</a> and all the customization options can be specified via a <code>values.yaml</code> file as documented <a href="https://github.com/avranju/iotedge-k8s/blob/edgelet-k8s/edgelet/build/charts/edge-kubernetes/values.yaml" target="_blank">here</a>.</p>
-<h2><strong>Issues</strong></h2>
-<p>If you&#39;d like to file issues, please use GitHub on the same repo (we&#39;ll figure out a better place to file these by the time we go more public with this preview):</p>
-<aside class="special"><p><a href="https://github.com/avranju/iotedge-k8s/issues" target="_blank">https://github.com/avranju/iotedge-k8s/issues</a></p>
-</aside>
-<h2><strong>Support</strong></h2>
-<p>If you are stuck, please feel free to reach out to any (or all) of the following aliases:</p>
+        <h2><strong>Support</strong></h2>
+<p>If you are stuck, please feel free to reach out to any (or all) of the following people:</p>
 <ul>
-<li>rajave</li>
-<li>darobs</li>
-<li>veyalla</li>
+<li>Venkat Yalla &lt;veyalla@microsoft.com&gt;</li>
+<li>Raj Vengalil &lt;rajave@microsoft.com&gt;</li>
+<li>David Robson &lt;darobs@microsoft.com&gt;</li>
 </ul>
-<p>Or alternatively, you should be able to reach out to the dev team on the <a href="https://teams.microsoft.com/l/channel/19%3ab12ed6d10f57458992fb2d6766408ca2%40thread.skype/General?groupId=18423957-a2c4-4359-8916-1a2215181a2a&tenantId=72f988bf-86f1-41af-91ab-2d7cd011db47" target="_blank">Teams channel</a>.</p>
 
 
       </google-codelab-step>
